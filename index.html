@@ -1,4 +1,249 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>WORLD GIRLS LOGIC</title>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>WORLD GIRLS LOGIC</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:#f4eadc;color:#4b4050;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;min-height:100vh}
+button{font:inherit;border:0}
+.app{width:min(100%,520px);margin:auto;padding:12px 12px 24px}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.logo{font-weight:900;letter-spacing:.7px;font-size:20px;color:#6b5369}
+.sub{font-size:11px;color:#9b8997}
+.avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(145deg,#ffd9e2,#fff4c9);display:grid;place-items:center;font-size:28px;border:3px solid #fff;box-shadow:0 3px 10px #0001}
+.stats{display:flex;align-items:center;gap:7px}
+.hearts{font-size:20px;letter-spacing:1px}
+.iconBtn{width:38px;height:38px;border-radius:13px;background:#fff;box-shadow:0 3px 10px #0001;font-size:18px}
+.panel{background:#fffdf9;border-radius:22px;padding:13px;margin-top:10px;box-shadow:0 5px 18px #7b66551a}
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.rule{background:#f8f2ec;border-radius:14px;padding:8px 5px;text-align:center;font-size:10px;line-height:1.35}
+.rule b{display:block;font-size:19px;margin-bottom:2px}
+.stageRow{display:flex;align-items:center;justify-content:space-between;margin:10px 2px 7px}
+.stage{font-weight:800;font-size:14px}.girlName{font-size:12px;color:#8b7184}
+.boardWrap{padding:8px;background:#fff;border-radius:20px;box-shadow:inset 0 0 0 1px #eadfd6}
+.board{display:grid;gap:2px;touch-action:none;user-select:none}
+.cell{position:relative;aspect-ratio:1;border-radius:5px;display:grid;place-items:center;font-size:clamp(18px,7vw,32px);overflow:hidden}
+.cell:after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px #ffffff66}
+.memo{color:#fff;font-size:clamp(18px,7vw,31px);font-weight:300;text-shadow:0 1px 4px #7c6b6b55;animation:pop .12s ease-out}
+.wrong{color:#e95461;font-weight:900;font-size:clamp(19px,7.5vw,34px);animation:wrong .22s ease-out}
+.target{animation:pop .18s ease-out}
+@keyframes pop{from{transform:scale(.55);opacity:.2}to{transform:scale(1);opacity:1}}
+@keyframes wrong{0%{transform:scale(.4)}65%{transform:scale(1.18)}100%{transform:scale(1)}}
+.bottom{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.action{background:#fff;border-radius:17px;padding:11px;text-align:center;box-shadow:0 4px 12px #0000000d}
+.action .big{font-size:24px}.action small{display:block;color:#887782;font-size:10px;margin-top:2px}
+.tip{margin-top:9px;background:#fff7cf;border-radius:15px;padding:9px;text-align:center;font-size:11px;color:#75633d}
+.modal{position:fixed;inset:0;background:#3f334766;display:none;align-items:center;justify-content:center;padding:22px;z-index:20}
+.modal.show{display:flex}
+.card{width:min(100%,390px);background:#fffdf9;border-radius:28px;padding:24px;text-align:center;box-shadow:0 20px 60px #0003}
+.card .bigGirl{font-size:72px}.card h2{margin:5px 0;color:#72556d}.card p{color:#756a70}
+.primary{width:100%;padding:14px;border-radius:16px;background:#7b5d79;color:#fff;font-weight:800;margin-top:8px}
+.secondary{width:100%;padding:11px;border-radius:15px;background:#f1e8ef;color:#6b5267;margin-top:7px}
+#hintText{min-height:18px}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div>
+    <div class="logo">WORLD GIRLS LOGIC</div>
+    <div class="sub">見つける・考える・世界を旅する</div>
+  </div>
+  <div class="stats">
+    <div id="hearts" class="hearts">♥♥♥</div>
+    <button class="iconBtn" id="hintBtn" aria-label="ヒント">💡</button>
+    <div id="avatar" class="avatar">🌸</div>
+  </div>
+</header>
+
+<div class="panel">
+  <div class="rules">
+    <div class="rule"><b>🎨</b>1つの色に<br>1つの持ち物</div>
+    <div class="rule"><b>↕️</b>各行・各列に<br>1つ</div>
+    <div class="rule"><b>✋</b>8方向で<br>隣り合わない</div>
+  </div>
+</div>
+
+<div class="stageRow">
+  <div><span class="stage" id="stageLabel">STAGE 1</span><span class="girlName" id="girlName">　さくら 🇯🇵</span></div>
+  <div class="sub" id="sizeLabel">4 × 4</div>
+</div>
+
+<div class="boardWrap"><div id="board" class="board"></div></div>
+
+<div class="bottom">
+  <div class="action"><div class="big">✕</div><small>タップ：白✕メモ　／　押して移動：連続メモ</small></div>
+  <div class="action"><div class="big">🔎</div><small>ダブルタップ：このマスを調査</small></div>
+</div>
+<div class="tip" id="hintText">白い✕は自分用メモ。置かなくてもクリアできます。</div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="card">
+    <div class="bigGirl" id="clearGirl">🌸</div>
+    <h2>見つけてくれてありがとう！</h2>
+    <p id="clearText">さくらの持ち物を見つけたよ。</p>
+    <button class="primary" id="nextBtn">次のステージへ</button>
+    <button class="secondary" id="closeBtn">もう一度見る</button>
+  </div>
+</div>
+
+<script>
+const girls=[
+ {name:"さくら",flag:"🇯🇵",face:"🌸"},
+ {name:"エマ",flag:"🇫🇷",face:"🎀"},
+ {name:"ジス",flag:"🇰🇷",face:"💗"},
+ {name:"ソフィア",flag:"🇮🇹",face:"🍀"},
+ {name:"ルナ",flag:"🇧🇷",face:"🌙"},
+ {name:"アリヤ",flag:"🇮🇳",face:"✨"},
+ {name:"リリ",flag:"🇸🇪",face:"🩵"},
+ {name:"レイチェル",flag:"🇺🇸",face:"⭐"}
+];
+
+const palettes=[
+ ["#f4d8dc","#dcebdc","#d9e3f2","#f6e8bd","#e5d8ed","#f3dfc9"],
+ ["#f5d6df","#d9e7f3","#e5e0f4","#f4e4bf","#dcebdc","#f0d9c9"],
+ ["#e3d9f0","#f5dfd8","#d9e9df","#f5e6bc","#d8e4f1","#edd9e5"]
+];
+
+let stage=1, size=4, hearts=3, memo=new Set(), wrong=new Set(), solved=new Set();
+let dragMode=false, lastCell=null, lastTapTime=0, lastTapCell=-1;
+
+function stageSize(s){return s<=20?4:s<=50?5:s<=100?6:s<=200?7:s<=500?8:10}
+function targetPermutation(n,s){
+  const perms={
+   4:[[1,3,0,2],[2,0,3,1],[1,3,0,2]],
+   5:[[0,2,4,1,3],[1,3,0,2,4],[2,4,1,3,0]],
+   6:[[0,2,4,1,5,3],[1,3,5,0,2,4],[2,4,0,5,1,3]],
+   7:[[0,2,4,6,1,3,5],[1,3,5,0,2,4,6],[2,4,6,1,3,5,0]],
+   8:[[0,2,4,6,1,3,5,7],[1,3,5,7,0,2,4,6],[2,4,6,0,7,1,3,5]],
+   10:[[0,2,4,6,8,1,3,5,7,9],[1,3,5,7,9,0,2,4,6,8],[2,4,6,8,0,7,1,3,5,9]]
+  };
+  return perms[n][(s-1)%perms[n].length];
+}
+function regionGrid(n,s){
+  // Connected-looking bands with deliberately placed singleton clue cells.
+  const g=Array.from({length:n},()=>Array(n).fill(0));
+  if(n===4){
+    return [
+      [0,0,1,1],
+      [0,2,2,1],
+      [3,2,2,1],
+      [3,3,3,1]
+    ];
+  }
+  // Deterministic Voronoi-like regions around one anchor per column.
+  const anchors=targetPermutation(n,s);
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    let best=0,bd=999;
+    for(let k=0;k<n;k++){
+      const ar=k, ac=anchors[k];
+      const d=Math.abs(r-ar)+Math.abs(c-ac);
+      if(d<bd){bd=d;best=k}
+    }
+    g[r][c]=best;
+  }
+  // Force the first target region to be a one-cell clue when possible.
+  return g;
+}
+function buildTargets(){
+  const p=targetPermutation(size,stage);
+  return p.map((c,r)=>r*size+c);
+}
+let regions,targets;
+
+function cellColor(id){
+  const k=regions[Math.floor(id/size)][id%size];
+  return palettes[(stage-1)%palettes.length][k%palettes[0].length];
+}
+function render(){
+  document.getElementById("stageLabel").textContent="STAGE "+stage;
+  document.getElementById("sizeLabel").textContent=size+" × "+size;
+  const girl=girls[(stage-1)%girls.length];
+  document.getElementById("girlName").textContent="　"+girl.name+" "+girl.flag;
+  document.getElementById("avatar").textContent=girl.face;
+  document.getElementById("hearts").textContent="♥".repeat(hearts)+"♡".repeat(3-hearts);
+  const board=document.getElementById("board");
+  board.style.gridTemplateColumns=`repeat(${size},1fr)`;
+  board.innerHTML="";
+  for(let id=0;id<size*size;id++){
+    const d=document.createElement("div");
+    d.className="cell"; d.dataset.id=id; d.style.background=cellColor(id);
+    if(memo.has(id)) d.innerHTML='<span class="memo">✕</span>';
+    if(wrong.has(id)) d.innerHTML='<span class="wrong">✕</span>';
+    if(solved.has(id)) d.innerHTML='<span class="target">🎁</span>';
+    d.addEventListener("pointerdown",e=>startPointer(e,id));
+    d.addEventListener("pointerenter",e=>movePointer(e,id));
+    d.addEventListener("pointerup",e=>endPointer(e,id));
+    board.appendChild(d);
+  }
+}
+function setMemo(id){
+  if(solved.has(id)||wrong.has(id))return;
+  if(memo.has(id)) memo.delete(id); else memo.add(id);
+  render();
+}
+function check(id){
+  if(solved.has(id))return;
+  if(targets.includes(id)){
+    solved.add(id); memo.delete(id);
+    if(solved.size===targets.length) setTimeout(clearStage,250);
+  }else{
+    if(!wrong.has(id)){wrong.add(id); hearts--;}
+    memo.delete(id);
+    if(hearts<=0)setTimeout(()=>{alert("ハートがなくなりました。ステージを最初からやり直します。");resetStage()},250);
+  }
+  render();
+}
+function startPointer(e,id){
+  e.preventDefault();
+  dragMode=false; lastCell=id;
+  const now=Date.now();
+  if(now-lastTapTime<300 && lastTapCell===id){
+    check(id); lastTapTime=0; return;
+  }
+  lastTapTime=now; lastTapCell=id;
+  setTimeout(()=>{
+    if(lastTapTime===now && lastTapCell===id && !dragMode) setMemo(id);
+  },300);
+}
+function movePointer(e,id){
+  if(e.buttons===1 && lastCell!==id){
+    dragMode=true; lastCell=id; setMemo(id);
+  }
+}
+function endPointer(){lastCell=null}
+function resetStage(){
+ hearts=3;memo.clear();wrong.clear();solved.clear();initStage();render();
+}
+function initStage(){
+ size=stageSize(stage); regions=regionGrid(size,stage); targets=buildTargets();
+}
+function clearStage(){
+ const girl=girls[(stage-1)%girls.length];
+ document.getElementById("clearGirl").textContent=girl.face;
+ document.getElementById("clearText").textContent=girl.name+"の持ち物を見つけたよ！";
+ document.getElementById("modal").classList.add("show");
+}
+document.getElementById("nextBtn").onclick=()=>{
+ document.getElementById("modal").classList.remove("show");
+ stage++; hearts=3;memo.clear();wrong.clear();solved.clear();initStage();render();
+};
+document.getElementById("closeBtn").onclick=()=>document.getElementById("modal").classList.remove("show");
+document.getElementById("hintBtn").onclick=()=>{
+ const remain=targets.filter(x=>!solved.has(x));
+ if(!remain.length)return;
+ const id=remain[0],r=Math.floor(id/size)+1,c=id%size+1;
+ document.getElementById("hintText").textContent=`ヒント：${r}行目・${c}列目のマスに注目してみよう。`;
+ const el=document.querySelector(`[data-id="${id}"]`);
+ if(el){el.animate([{transform:"scale(1)"},{transform:"scale(1.12)"},{transform:"scale(1)"}],{duration:500});}
+};
+initStage();render();
+</script>
+</body>
+</html><!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>WORLD GIRLS LOGIC</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#fff9fb;color:#514b55;font-family:-apple-system,BlinkMacSystemFont,sans-serif;text-align:center;touch-action:manipulation}header{padding:14px 8px 4px}.title{font-weight:800;font-size:22px}.sub{font-size:12px;color:#8d8490}.info{display:flex;justify-content:space-between;align-items:center;max-width:520px;margin:8px auto;padding:0 12px}.hearts{letter-spacing:2px}button{border:0;border-radius:18px;background:#fff;box-shadow:0 2px 8px #0002;padding:8px 13px;font-size:14px}#board{margin:8px auto 12px;width:min(92vw,520px);aspect-ratio:1;display:grid;gap:3px}.cell{position:relative;border-radius:6px;touch-action:none;user-select:none;-webkit-user-select:none}.mark{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(18px,7vw,34px);font-weight:800;color:white;text-shadow:0 1px 2px #777}.red{color:#e34d59}.item{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(18px,6vw,30px);background:#fffb}.tip{font-size:12px;line-height:1.6;color:#837b87;padding:0 14px;max-width:520px;margin:auto}#msg{min-height:22px;font-size:13px}.modal{position:fixed;inset:0;background:#0005;display:none;align-items:center;justify-content:center;padding:24px}.card{background:#fff;border-radius:24px;padding:24px;width:100%;max-width:340px}.face{font-size:58px}
 </style></head><body>

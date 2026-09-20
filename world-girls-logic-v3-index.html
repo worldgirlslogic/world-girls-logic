@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>WORLD GIRLS LOGIC</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:#f3e9dc;color:#4b4050;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+button{font:inherit;border:0}.app{width:min(100%,520px);margin:auto;padding:12px 12px 24px}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px}.logo{font-weight:900;letter-spacing:.6px;font-size:20px;color:#6b5369}.sub{font-size:11px;color:#9b8997}
+.stats{display:flex;align-items:center;gap:6px}.hearts{font-size:19px;letter-spacing:1px}.avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(145deg,#ffd9e2,#fff4c9);display:grid;place-items:center;font-size:27px;border:3px solid #fff;box-shadow:0 3px 10px #0001}
+.iconBtn{width:38px;height:38px;border-radius:13px;background:#fff;box-shadow:0 3px 10px #0001;font-size:18px}.soundBtn{width:38px;height:38px;border-radius:13px;background:#fff;box-shadow:0 3px 10px #0001;font-size:17px}
+.panel{background:#fffdf9;border-radius:22px;padding:12px;margin-top:10px;box-shadow:0 5px 18px #7b66551a}.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.rule{background:#f8f2ec;border-radius:14px;padding:8px 4px;text-align:center;font-size:10px;line-height:1.35}.rule b{display:block;font-size:19px;margin-bottom:2px}
+.stageRow{display:flex;align-items:center;justify-content:space-between;margin:10px 2px 7px}.stage{font-weight:800;font-size:14px}.girlName{font-size:12px;color:#8b7184}
+.boardWrap{padding:8px;background:#fff;border-radius:20px;box-shadow:inset 0 0 0 1px #eadfd6}.board{display:grid;gap:2px;touch-action:none;user-select:none}
+.cell{position:relative;aspect-ratio:1;border-radius:5px;display:grid;place-items:center;overflow:hidden}.cell:after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px #ffffff66}.memo{color:#fff;font-size:clamp(18px,7vw,31px);font-weight:300;text-shadow:0 1px 4px #66595c66;animation:pop .12s ease-out}.wrong{color:#e95461;font-weight:900;font-size:clamp(19px,7.5vw,34px);animation:wrong .22s ease-out}.target{font-size:clamp(18px,7vw,31px);animation:pop .18s ease-out}
+@keyframes pop{from{transform:scale(.55);opacity:.2}to{transform:scale(1);opacity:1}}@keyframes wrong{0%{transform:scale(.4)}65%{transform:scale(1.18)}100%{transform:scale(1)}}
+.bottom{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.action{background:#fff;border-radius:17px;padding:11px;text-align:center;box-shadow:0 4px 12px #0000000d}.action .big{font-size:24px}.action small{display:block;color:#887782;font-size:10px;margin-top:2px}
+.tip{margin-top:9px;background:#fff7cf;border-radius:15px;padding:9px;text-align:center;font-size:11px;color:#75633d}
+.modal{position:fixed;inset:0;background:#3f334766;display:none;align-items:center;justify-content:center;padding:22px;z-index:20}.modal.show{display:flex}.card{width:min(100%,390px);background:#fffdf9;border-radius:28px;padding:24px;text-align:center;box-shadow:0 20px 60px #0003}.card .bigGirl{font-size:72px}.card h2{margin:5px 0;color:#72556d}.card p{color:#756a70}.primary{width:100%;padding:14px;border-radius:16px;background:#7b5d79;color:#fff;font-weight:800;margin-top:8px}.secondary{width:100%;padding:11px;border-radius:15px;background:#f1e8ef;color:#6b5267;margin-top:7px}
+@media(max-width:370px){.rule{font-size:9px}.app{padding-left:9px;padding-right:9px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div><div class="logo">WORLD GIRLS LOGIC</div><div class="sub">見つける・考える・世界を旅する</div></div>
+ <div class="stats"><div id="hearts" class="hearts">♥♥♥</div><button class="iconBtn" id="hintBtn" aria-label="ヒント">💡</button><button class="soundBtn" id="soundBtn" aria-label="音楽オン">🔊</button><div id="avatar" class="avatar">🌸</div></div>
+</header>
+<div class="panel" id="rulesPanel"><div class="rules">
+ <div class="rule"><b>🎨</b>1つの色に<br>1つの持ち物</div>
+ <div class="rule"><b>↕️</b>各行・各列に<br>1つ</div>
+ <div class="rule"><b>✋</b>8方向で<br>隣り合わない</div>
+</div></div>
+<div class="stageRow"><div><span class="stage" id="stageLabel">STAGE 1</span><span class="girlName" id="girlName">　さくら 🇯🇵</span></div><div class="sub" id="sizeLabel">4 × 4</div></div>
+<div class="boardWrap"><div id="board" class="board"></div></div>
+<div class="bottom" id="howto">
+ <div class="action"><div class="big">✕</div><small>タップ：白✕メモ　／　押して移動：連続メモ</small></div>
+ <div class="action"><div class="big">🔎</div><small>ダブルタップ：このマスを調査</small></div>
+</div>
+<div class="tip" id="hintText">ステージ1では、盤面の色と3つのルールを使って考えよう。</div>
+</div>
+<div class="modal" id="modal"><div class="card"><div class="bigGirl" id="clearGirl">🌸</div><h2>見つけてくれてありがとう！</h2><p id="clearText">さくらの持ち物を見つけたよ。</p><button class="primary" id="nextBtn">次のステージへ</button><button class="secondary" id="closeBtn">もう一度見る</button></div></div>
+<script>
+const girls=[
+ {name:"さくら",flag:"🇯🇵",face:"🌸"},{name:"エマ",flag:"🇫🇷",face:"🎀"},{name:"ジス",flag:"🇰🇷",face:"💗"},{name:"ソフィア",flag:"🇮🇹",face:"🍀"},
+ {name:"ルナ",flag:"🇧🇷",face:"🌙"},{name:"アリヤ",flag:"🇮🇳",face:"✨"},{name:"リリ",flag:"🇸🇪",face:"🩵"},{name:"レイチェル",flag:"🇺🇸",face:"⭐"}
+];
+const palettes=[
+ ["#f3d7dc","#dbe8f2","#e5dfc1","#dcebdc","#e7d9ee","#f0dfcf"],
+ ["#ead8ee","#dcebdc","#f3d8d7","#dbe6f3","#f3e5be","#eedbcf"],
+ ["#dce9f3","#f0d8df","#dcebdc","#e9dcef","#f2e5bd","#f0ddce"]
+];
+let stage=1,size=4,hearts=3,memo=new Set(),wrong=new Set(),solved=new Set();
+let regions=[],targets=[],tapTimer=null,downId=null,dragging=false,dragValue=true,lastTapTime=0,lastTapId=-1;
+
+function stageSize(s){return s<=2?4:s<=20?5:s<=50?6:s<=100?7:s<=200?8:10}
+function targetPermutation(n,s){
+ const p={
+ 4:[[1,3,0,2],[2,0,3,1]],
+ 5:[[0,2,4,1,3],[1,3,0,2,4],[2,4,1,3,0]],
+ 6:[[0,2,4,1,5,3],[1,3,5,0,2,4],[2,4,0,5,1,3]],
+ 7:[[0,2,4,6,1,3,5],[1,3,5,0,2,4,6],[2,4,6,1,3,5,0]],
+ 8:[[0,2,4,6,1,3,5,7],[1,3,5,7,0,2,4,6]],
+ 10:[[0,2,4,6,8,1,3,5,7,9],[1,3,5,7,9,0,2,4,6,8]]
+ };
+ return p[n][(s-1)%p[n].length];
+}
+function makeRegions(n,s){
+ if(n===4){
+  // Singleton region at (0,1): this is the first logical clue, without explaining it in text.
+  return [[2,0,1,1],[2,1,1,1],[2,2,3,3],[2,2,3,3]];
+ }
+ const g=Array.from({length:n},()=>Array(n).fill(-1));
+ const p=targetPermutation(n,s);
+ // Seed each region at its target cell so every color region has exactly one target.
+ for(let r=0;r<n;r++)g[r][p[r]]=r;
+ // Grow regions from their seeds while keeping them connected.
+ const remaining=[];
+ for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(g[r][c]===-1)remaining.push([r,c]);
+ remaining.sort((a,b)=>(a[0]*n+a[1])-(b[0]*n+b[1]));
+ for(const [r,c] of remaining){
+  const choices=[];
+  for(let k=0;k<n;k++){
+   const around=[[r-1,c],[r+1,c],[r,c-1],[r,c+1]];
+   if(around.some(([rr,cc])=>rr>=0&&rr<n&&cc>=0&&cc<n&&g[rr][cc]===k))choices.push(k);
+  }
+  g[r][c]=choices.length?choices[(r+c+s)%choices.length]:(r+c+s)%n;
+ }
+ return g;
+}
+function initStage(){size=stageSize(stage);regions=makeRegions(size,stage);targets=targetPermutation(size,stage).map((c,r)=>r*size+c)}
+function colorOf(id){return palettes[(stage-1)%palettes.length][regions[Math.floor(id/size)][id%size]%6]}
+function render(){
+ const girl=girls[(stage-1)%girls.length];
+ document.getElementById("stageLabel").textContent="STAGE "+stage;
+ document.getElementById("sizeLabel").textContent=size+" × "+size;
+ document.getElementById("girlName").textContent="　"+girl.name+" "+girl.flag;
+ document.getElementById("avatar").textContent=girl.face;
+ document.getElementById("hearts").textContent="♥".repeat(hearts)+"♡".repeat(3-hearts);
+ document.getElementById("rulesPanel").style.display=stage===1?"block":"none";
+ document.getElementById("howto").style.display=stage===1?"grid":"none";
+ document.getElementById("hintText").style.display=stage===1?"block":"none";
+ const b=document.getElementById("board");b.style.gridTemplateColumns=`repeat(${size},1fr)`;b.innerHTML="";
+ for(let id=0;id<size*size;id++){
+  const d=document.createElement("div");d.className="cell";d.dataset.id=id;d.style.background=colorOf(id);
+  if(memo.has(id))d.innerHTML='<span class="memo">✕</span>';
+  if(wrong.has(id))d.innerHTML='<span class="wrong">✕</span>';
+  if(solved.has(id))d.innerHTML='<span class="target">🎁</span>';
+  d.addEventListener("pointerdown",e=>pointerDown(e,id));
+  d.addEventListener("pointerenter",e=>pointerEnter(e,id));
+  d.addEventListener("pointerup",e=>pointerUp(e,id));
+  b.appendChild(d);
+ }
+}
+function haptic(kind="tap"){
+ try{
+  if(!navigator.vibrate)return;
+  navigator.vibrate(kind==="wrong"?[18,25,35]:kind==="clear"?[18,25,45]:kind==="check"?12:8);
+ }catch(e){}
+}
+
+// Original sound system: short synthesized tones, no external audio files.
+let audioCtx=null,musicOn=true,musicTimer=null,musicStep=0;
+const melody=[523.25,659.25,783.99,659.25,587.33,698.46,880,698.46,523.25,659.25,783.99,987.77,783.99,659.25,587.33,523.25];
+function ensureAudio(){
+ if(!musicOn)return;
+ try{
+  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state!=="running")audioCtx.resume();
+ }catch(e){audioCtx=null}
+}
+function tone(freq,duration=.11,volume=.028,type="sine",when=null){
+ if(!audioCtx||!musicOn)return;
+ const t=when??audioCtx.currentTime;
+ const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+ o.type=type;o.frequency.setValueAtTime(freq,t);
+ g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(volume,t+.012);g.gain.exponentialRampToValueAtTime(0.0001,t+duration);
+ o.connect(g).connect(audioCtx.destination);o.start(t);o.stop(t+duration+.02);
+}
+function startMusic(){
+ ensureAudio();if(!audioCtx||!musicOn||musicTimer)return;
+ const play=()=>{if(!audioCtx||!musicOn)return;const now=audioCtx.currentTime+0.02;tone(melody[musicStep%melody.length],.16,.018,"triangle",now);if(musicStep%4===0)tone(melody[musicStep%melody.length]/2,.22,.009,"sine",now);musicStep++;};
+ play();musicTimer=setInterval(play,360);
+}
+function stopMusic(){if(musicTimer){clearInterval(musicTimer);musicTimer=null}}
+function tapSound(){ensureAudio();tone(740,.055,.025,"sine")}
+function checkSound(ok){ensureAudio();if(ok){tone(659,.09,.035,"triangle");setTimeout(()=>tone(988,.13,.04,"triangle"),75)}else{tone(180,.12,.035,"sawtooth")}}
+function clearSound(){ensureAudio();if(!audioCtx)return;const t=audioCtx.currentTime+.02;[523.25,659.25,783.99,1046.5,1318.51].forEach((f,i)=>tone(f,.18,.045,"triangle",t+i*.09));setTimeout(()=>tone(1567.98,.35,.035,"sine"),450)}
+
+document.getElementById("soundBtn").addEventListener("click",()=>{
+ musicOn=!musicOn;const b=document.getElementById("soundBtn");b.textContent=musicOn?"🔊":"🔇";b.setAttribute("aria-label",musicOn?"音楽オフ":"音楽オン");
+ if(musicOn){ensureAudio();startMusic()}else stopMusic();
+});
+
+function toggleMemo(id,on=null){
+ if(solved.has(id)||wrong.has(id))return;
+ const shouldAdd=on===null?!memo.has(id):on;
+ if(shouldAdd)memo.add(id);else memo.delete(id);
+ render();
+}
+function pointerDown(e,id){
+ e.preventDefault();ensureAudio();tapSound();haptic("tap");downId=id;dragging=false;
+ const now=Date.now();
+ if(now-lastTapTime<330&&lastTapId===id){clearTimeout(tapTimer);lastTapTime=0;lastTapId=-1;check(id);return;}
+ lastTapTime=now;lastTapId=id;
+ tapTimer=setTimeout(()=>{if(lastTapTime===now&&lastTapId===id&&!dragging)toggleMemo(id)},340);
+}
+function pointerEnter(e,id){
+ if(e.buttons!==1||downId===null||id===downId)return;
+ if(!dragging){dragging=true;clearTimeout(tapTimer);dragValue=!memo.has(id)}
+ toggleMemo(id,dragValue);
+}
+function pointerUp(e,id){downId=null;dragging=false}
+function check(id){
+ if(solved.has(id))return;
+ const ok=targets.includes(id);haptic(ok?"check":"wrong");checkSound(ok);
+ if(ok){solved.add(id);memo.delete(id);render();if(solved.size===targets.length)setTimeout(clearStage,250)}
+ else{wrong.add(id);memo.delete(id);hearts--;render();if(hearts<=0)setTimeout(()=>{stopMusic();alert("ハートがなくなりました。ステージをやり直します。");resetStage()},250)}
+}
+function resetStage(){hearts=3;memo.clear();wrong.clear();solved.clear();initStage();render();startMusic()}
+function clearStage(){
+ stopMusic();clearSound();haptic("clear");
+ const g=girls[(stage-1)%girls.length];document.getElementById("clearGirl").textContent=g.face;document.getElementById("clearText").textContent=g.name+"の持ち物を見つけたよ！";document.getElementById("modal").classList.add("show");
+}
+document.getElementById("nextBtn").onclick=()=>{document.getElementById("modal").classList.remove("show");stage++;hearts=3;memo.clear();wrong.clear();solved.clear();initStage();render();startMusic()}
+document.getElementById("closeBtn").onclick=()=>{document.getElementById("modal").classList.remove("show");startMusic()}
+document.getElementById("hintBtn").onclick=()=>{ensureAudio();tone(1046,.12,.03,"sine");const remain=targets.filter(x=>!solved.has(x));if(!remain.length)return;const id=remain[0],r=Math.floor(id/size)+1,c=id%size+1;if(stage===1)document.getElementById("hintText").textContent=`ヒント：${r}行目・${c}列目に注目してみよう。`;const el=document.querySelector(`[data-id="${id}"]`);if(el)el.animate([{transform:"scale(1)"},{transform:"scale(1.12)"},{transform:"scale(1)"}],{duration:500})};
+
+initStage();render();
+// Audio begins after the player's first touch, respecting mobile autoplay rules.
+document.addEventListener("pointerdown",()=>startMusic(),{once:true,passive:true});
+</script>
+</body>
+</html>
